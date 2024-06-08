@@ -8,10 +8,10 @@ echo "⏳Processing..."
 sleep 5  # Add a 5-second delay
 
 # Stop the ceremonyclient service
-service ceremonyclient stop
+sudo service ceremonyclient stop
 
-apt install cpulimit -y
-apt install gawk -y #incase it is not installed
+sudo apt install cpulimit -y
+sudo apt install gawk -y #incase it is not installed
 
 # Step 1:Download Binary
 echo "⏳ Downloading New Release v1.4.19"
