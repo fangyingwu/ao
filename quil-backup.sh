@@ -1,6 +1,6 @@
 #!/bin/bash
 # Create the backup script
-cat <<EOF >"~/backup_script.sh"
+cat <<EOF > ~/backup_script.sh
 #!/bin/bash
 TAR_FILE=$(date +%Y%m%d)"_quil_store_backup.tar.gz"
 
