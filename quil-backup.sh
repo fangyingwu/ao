@@ -9,8 +9,8 @@ existing_cron=$(crontab -l | grep "~/backup_script.sh")
 
 # Schedule the backup script if it's not already scheduled
 if [ -z "$existing_cron" ]; then
-    (crontab -l 2>/dev/null; echo "20 16 * * * ~/backup_script.sh") | crontab -
-    echo "Backup script scheduled to run daily at 16:20."
+    (crontab -l 2>/dev/null; echo "0 20 * * * ~/backup_script.sh") | crontab -
+    echo "Backup script scheduled to run daily at 20:00."
 else
     echo "Backup script already scheduled."
 fi
