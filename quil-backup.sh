@@ -1,6 +1,4 @@
 #!/bin/bash
-
-mkdir -p ~/backup-quil
 # Create the backup script
 cat <<EOF >"~/backup_script.sh"
 #!/bin/bash
