@@ -36,7 +36,7 @@ $USER_HOME/backup_script.sh
 # Schedule the backup script if it's not already scheduled
 if [ -z "$existing_cron" ]; then
     (crontab -l 2>/dev/null; echo "0 13 * * * $USER_HOME/backup_script.sh") | crontab -
-    echo "Backup script scheduled to run daily at 13:00 AM."
+    echo "Backup script scheduled to run daily at 13:00."
 else
     echo "Backup script already scheduled."
 fi
