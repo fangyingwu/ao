@@ -15,5 +15,5 @@
 #fi
 #echo "Script execution completed."
 mkdir -p  ~/backup-quil
-cp -r ~/ceremonyclient/node/.config  ~/backup-quil/config_$(date +%Y%m%d)
+sudo cp -r ~/ceremonyclient/node/.config  ~/backup-quil/config_$(date +%Y%m%d)
 
