@@ -1,6 +1,6 @@
 #!/bin/bash
 # Create the backup script
-cat <<EOF >"$USER_HOME/backup_script.sh"
+sudo cat <<EOF >"$USER_HOME/backup_script.sh"
 #!/bin/bash
 # Get the current date in YYYYMMDD format
 current_date=$(date +%Y%m%d)
