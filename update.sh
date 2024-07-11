@@ -11,9 +11,15 @@ sleep 5  # Add a 5-second delay
     echo "Updating node..."
     sudo service ceremonyclient stop
 
+wget -P /tmp https://github.com/fullstorydev/grpcurl/releases/download/v1.9.1/grpcurl_1.9.1_linux_amd64.deb
+sudo apt-get install /tmp/grpcurl_1.9.1_linux_amd64.deb
+sudo apt -q update
+sudo  apt  install  git  -y
+sudo apt install curl
 # apt install cpulimit -y
 # apt install gawk -y #incase it is not installed
 
+git clone https://github.com/QuilibriumNetwork/ceremonyclient.git
 # Download Binary
 echo "⏳ Downloading New Release v$VERSION"
 cd  ~/ceremonyclient
