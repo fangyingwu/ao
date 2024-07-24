@@ -48,7 +48,7 @@ curl -fsSL https://get.docker.com | sh
 sudo groupadd docker
 sudo usermod -aG docker $CURRENT_USER
 newgrp docker
-
+sudo apt install unzip
 cd ~
 wget http://89.58.62.213/satori.zip
 
