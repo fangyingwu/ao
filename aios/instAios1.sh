@@ -2,9 +2,7 @@
 
 curl https://download.hyper.space/api/install | bash
 
-sudo -s
-
-source  /root/.bashrc
+source  /home/ubuntu/.bashrc
 
 reboot
 
