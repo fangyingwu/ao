@@ -1,8 +1,8 @@
 #!/bin/bash
 
 curl https://download.hyper.space/api/install | bash
-
-source  /home/ubuntu/.bashrc
+sudo -s
+source  /root/.bashrc
 
 aios-cli start >> aios.log 2>&1 &
 
