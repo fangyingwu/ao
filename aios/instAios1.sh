@@ -2,7 +2,11 @@
 
 curl https://download.hyper.space/api/install | bash
 
+sleep 1
+
 source  /home/ubuntu/.bashrc
+
+sleep 1
 
 nohup aios-cli start >> aios.log 2>&1 &
 
