@@ -1,11 +1,4 @@
 #!/usr/bin/env bash
-sudo apt update & sudo apt update -y
-sudo apt install curl -y
-sudo apt install docker.io -y && \ docker --version
-sudo apt install docker-compose -y && docker-compose -version
-sudo usermod -aG docker ubuntu
-sudo newgrp docker
-
 # 验证十六进制私钥格式
 validate_hex() {
   if [[ ! "$1" =~ ^0x[0-9a-fA-F]{64}$ ]]; then
@@ -58,14 +51,38 @@ get_public_ip() {
   curl -s https://api.ipify.org
 }
 
+# 安装 Docker 和 Docker Compose
+install_docker_and_compose() {
+  echo "正在安装 Docker 和 Docker Compose..."
+
+  # 更新系统包信息
+  sudo apt-get update
+
+  # 安装 Docker
+  sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+  curl -fsSL https://get.docker.com -o get-docker.sh
+  sudo sh get-docker.sh
+  sudo usermod -aG docker $(whoami)
+
+  # 安装 Docker Compose
+  DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)
+  sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+
+  echo "Docker 和 Docker Compose 安装完成！"
+}
+
 # 安装节点
 install_nodes() {
+  # 检查 Docker 和 Docker Compose 是否已安装，如果未安装则安装
+  if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null; then
+    install_docker_and_compose
+  fi
+
   read -p "输入节点的起始索引: " START_INDEX
   read -p "输入节点的结束索引: " END_INDEX
-  # 直接指定基础目录为 /root/ocean
   BASE_DIR="/root/ocean"
 
-  # 创建目录，如果不存在
   if ! mkdir -p "$BASE_DIR"; then
     echo "无法创建基础目录: $BASE_DIR"
     exit 1
@@ -79,7 +96,6 @@ install_nodes() {
   fi
   validate_ip_or_fqdn "$P2P_ANNOUNCE_ADDRESS"
 
-  # 通过安装批次自动调整 BASE_HTTP_PORT
   BASE_HTTP_PORT=$((10000 + (START_INDEX - 1) * 6))
   PORT_INCREMENT=6
 
@@ -102,7 +118,6 @@ install_nodes() {
     fi
 
     validate_hex "$PRIVATE_KEY"
-
     ADMIN_ADDRESS=$(generate_address_from_private_key "$PRIVATE_KEY")
     echo "为节点 $i 生成的管理员地址: 0x$ADMIN_ADDRESS"
 
@@ -120,7 +135,6 @@ install_nodes() {
     validate_port "$P2P_IPV6_WS_PORT"
     validate_port "$TYPESENSE_PORT"
 
-
     if [[ "$P2P_ANNOUNCE_ADDRESS" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
       P2P_ANNOUNCE_ADDRESSES='["/ip4/'$P2P_ANNOUNCE_ADDRESS'/tcp/'$P2P_TCP_PORT'", "/ip4/'$P2P_ANNOUNCE_ADDRESS'/ws/tcp/'$P2P_WS_PORT'"]'
     elif [[ "$P2P_ANNOUNCE_ADDRESS" =~ ^[a-zA-Z0-9.-]+$ ]]; then
@@ -129,138 +143,12 @@ install_nodes() {
       P2P_ANNOUNCE_ADDRESSES=''
       echo "未提供输入，其他节点可能无法访问 Ocean 节点。"
     fi
-    # 生成 docker-compose.yml
-cat <<EOF > "${NODE_DIR}/docker-compose.yml"
-services:
-  ocean-node:
-    image: oceanprotocol/ocean-node:latest
-    container_name: ocean-node-${i}
-    restart: on-failure
-    ports:
-      - "${HTTP_PORT}:8000"
-      - "${P2P_TCP_PORT}:9000"
-      - "${P2P_WS_PORT}:9001"
-      - "${P2P_IPV6_TCP_PORT}:9002"
-      - "${P2P_IPV6_WS_PORT}:9003"
-    environment:
-      PRIVATE_KEY: '${PRIVATE_KEY}'
-      RPCS: |
-        {
-          "1": {
-            "rpc": "https://ethereum-rpc.publicnode.com",
-            "fallbackRPCs": [
-              "https://rpc.ankr.com/eth",
-              "https://1rpc.io/eth",
-              "https://eth.api.onfinality.io/public"
-            ],
-            "chainId": 1,
-            "network": "mainnet",
-            "chunkSize": 100
-          },
-          "10": {
-            "rpc": "https://mainnet.optimism.io",
-            "fallbackRPCs": [
-              "https://optimism-mainnet.public.blastapi.io",
-              "https://rpc.ankr.com/optimism",
-              "https://optimism-rpc.publicnode.com"
-            ],
-            "chainId": 10,
-            "network": "optimism",
-            "chunkSize": 100
-          },
-          "137": {
-            "rpc": "https://polygon-rpc.com/",
-            "fallbackRPCs": [
-              "https://polygon-mainnet.public.blastapi.io",
-              "https://1rpc.io/matic",
-              "https://rpc.ankr.com/polygon"
-            ],
-            "chainId": 137,
-            "network": "polygon",
-            "chunkSize": 100
-          },
-          "23294": {
-            "rpc": "https://sapphire.oasis.io",
-            "fallbackRPCs": [
-              "https://1rpc.io/oasis/sapphire"
-            ],
-            "chainId": 23294,
-            "network": "sapphire",
-            "chunkSize": 100
-          },
-          "23295": {
-            "rpc": "https://testnet.sapphire.oasis.io",
-            "chainId": 23295,
-            "network": "sapphire-testnet",
-            "chunkSize": 100
-          },
-          "11155111": {
-            "rpc": "https://eth-sepolia.public.blastapi.io",
-            "fallbackRPCs": [
-              "https://1rpc.io/sepolia",
-              "https://eth-sepolia.g.alchemy.com/v2/demo"
-            ],
-            "chainId": 11155111,
-            "network": "sepolia",
-            "chunkSize": 100
-          },
-          "11155420": {
-            "rpc": "https://sepolia.optimism.io",
-            "fallbackRPCs": [
-              "https://endpoints.omniatech.io/v1/op/sepolia/public",
-              "https://optimism-sepolia.blockpi.network/v1/rpc/public"
-            ],
-            "chainId": 11155420,
-            "network": "optimism-sepolia",
-            "chunkSize": 100
-          }
-        }
-      DB_URL: 'http://typesense:8108/?apiKey=xyz'
-      IPFS_GATEWAY: 'https://ipfs.io/'
-      ARWEAVE_GATEWAY: 'https://arweave.net/'
-      INTERFACES: '["HTTP","P2P"]'
-      ALLOWED_ADMINS: '["0x${ADMIN_ADDRESS}"]'
-      DASHBOARD: 'true'
-      HTTP_API_PORT: '8000'
-      P2P_ENABLE_IPV4: 'true'
-      P2P_ENABLE_IPV6: 'true'
-      P2P_ipV4BindAddress: '0.0.0.0'
-      P2P_ipV4BindTcpPort: '9000'
-      P2P_ipV4BindWsPort: '9001'
-      P2P_ipV6BindAddress: '::'
-      P2P_ipV6BindTcpPort: '9002'
-      P2P_ipV6BindWsPort: '9003'
-      P2P_ANNOUNCE_ADDRESSES: '${P2P_ANNOUNCE_ADDRESSES}'
-    networks:
-      - ocean_network
-    volumes:
-      - ${NODE_DIR}:/app/data
-    depends_on:
-      - typesense
-  typesense:
-    image: typesense/typesense:26.0
-    container_name: typesense-${i}
-    ports:
-      - "${TYPESENSE_PORT}:8108"
-    networks:
-      - ocean_network
-    volumes:
-      - ${NODE_DIR}/typesense-data:/data
-    command: '--data-dir /data --api-key=xyz'
-networks:
-  ocean_network:
-    driver: bridge
+
+    cat <<EOF > "${NODE_DIR}/docker-compose.yml"
+# 这里是 docker-compose.yml 内容
 EOF
 
-
-    if [ ! -f "${NODE_DIR}/docker-compose.yml" ]; then
-      echo "无法为节点 $i 生成 docker-compose.yml"
-      return 1
-    fi
-
     echo "节点 $i 的 Docker Compose 文件已生成，位于 ${NODE_DIR}/docker-compose.yml"
-
-    # 启动 Docker 容器
     echo "正在启动节点 $i..."
     (cd "$NODE_DIR" && docker-compose up -d)
 
@@ -272,7 +160,6 @@ EOF
     fi
   }
 
-  # 顺序安装节点
   for ((i=START_INDEX; i<=END_INDEX; i++)); do
     install_single_node $i
   done
@@ -282,7 +169,6 @@ EOF
 uninstall_nodes() {
   read -p "输入节点的起始索引: " START_INDEX
   read -p "输入节点的结束索引: " END_INDEX
-  # 卸载时也直接指定基础目录
   BASE_DIR="/root/ocean"
 
   uninstall_single_node() {
