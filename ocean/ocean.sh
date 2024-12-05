@@ -55,19 +55,12 @@ get_public_ip() {
 install_docker_and_compose() {
   echo "正在安装 Docker 和 Docker Compose..."
 
-  # 更新系统包信息
-  sudo apt-get update
-
-  # 安装 Docker
-  sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-  curl -fsSL https://get.docker.com -o get-docker.sh
-  sudo sh get-docker.sh
+  sudo apt update & sudo apt update -y
+  sudo apt install curl -y
+  sudo apt install docker.io -y && \ docker --version
+   sudo apt install docker-compose -y && docker-compose -version
   sudo usermod -aG docker $(whoami)
-
-  # 安装 Docker Compose
-  DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)
-  sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  sudo chmod +x /usr/local/bin/docker-compose
+  sudo newgrp docker
 
   echo "Docker 和 Docker Compose 安装完成！"
 }
