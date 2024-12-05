@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+sudo apt update & sudo apt update -y
+sudo apt install curl -y
+sudo apt install docker.io -y && \ docker --version
+sudo apt install docker-compose -y && docker-compose -version
+sudo usermod -aG docker ubuntu
+sudo newgrp docker
 
 # 验证十六进制私钥格式
 validate_hex() {
