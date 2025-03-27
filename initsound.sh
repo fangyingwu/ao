@@ -1,11 +1,12 @@
 #!/bin/bash
 
-sudo DEBIAN_FRONTEND=noninteractive apt install -y expect && sudo DEBIAN_FRONTEND=noninteractive apt install -y pkg-config libssl-dev && sudo NEEDRESTART_MODE=a apt update && \
+sudo DEBIAN_FRONTEND=noninteractive apt install -y expect pkg-config libssl-dev && \
+sudo NEEDRESTART_MODE=a apt update && \
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
-source $HOME/.cargo/env && rustc --version && cargo --version && echo 'source $HOME/.cargo/env' >> ~/.bashrc && source ~/.bashrc && \
+export PATH=$HOME/.cargo/bin:$PATH && rustc --version && cargo --version && \
+echo 'export PATH=$HOME/.cargo/bin:$PATH' >> ~/.bashrc && \
 curl -sSL https://raw.githubusercontent.com/soundnesslabs/soundness-layer/main/soundnessup/install | bash && \
-source ~/.bashrc && soundnessup install && \
-soundnessup update 
+export PATH=$HOME/.cargo/bin:$PATH && soundnessup install && soundnessup update
 
 expect <<EOF
 spawn soundness-cli generate-key --name my-key
